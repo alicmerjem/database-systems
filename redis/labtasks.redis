@@ -1,0 +1,151 @@
+// TASK 1
+// create a redis structure to store users 
+// each user must store:
+// username, email and a creation dates
+// write redis commands to:
+// create user 101 with username Alice
+// create user 102 with username bob
+// store all user IDs in one structure 
+
+HSET user:101 name "alice" \
+    email "alice@gmail.com" \
+    creationdate "2026-09-06"
+
+HSET user:102 name "bob" \
+    email "bob@example.com" \
+    creationdate "2026-09-06"
+
+SADD users:ids 101 102
+
+SMEMBERS users:ids
+
+HGET user:101 email
+
+----------------------------------------------------
+
+// TASK 2
+// each page belongs to an author and has:
+// title, category
+// with redis commands to:
+// create page 501 titled redis basics in category databases authored by user 101
+// create page 502 titled sql vs no sql authored by user 102
+// store all pages per category
+
+HSET page:501 title "redis basics" category "databases" author "user:101"
+HSET page:502 title "sql vs nosql" author "user:102"
+
+SADD category:Databases:pages 501
+
+----------------------------------------------------
+
+// TASK 3
+// sessions must expire automatically
+// write redis commands to:
+// create a session for user 101 lasting 30 minutes
+// check remaining session time 
+// delete session manually / log out
+
+SET session:101 "session" EX 1800
+TTL session:101
+GET session:101
+DELETE session:101
+
+----------------------------------------------------
+
+// TASK 4
+// every page view should be recorded
+// write redis commands to:
+// record that user 101 viewed page 101
+// retrive view history for user 101
+// retrieve all viewers of page 501
+
+RPUSH user:101:viewers 101
+SADD page:501:viewers 101
+LRANGE user:101:history 0 -1
+SMEMBERS page:501:viewers
+
+----------------------------------------------------
+
+// TASK 5
+// a user can like many pages
+// a page can be liked by many users
+// write a redis command to:
+// record that user 101 liked page 501
+// count total likes for page 501
+
+SADD page:501:likes 101
+SCARD page:501:likes
+
+----------------------------------------------------
+
+// TASK 6
+// track page popularity based on number of views 
+// write redis commands to:
+// increment view count for page 501
+// rank pages by number of views
+// retrieve top 3 most viewed pages
+
+ZINCRBY page:popularity 1 501 
+ZINCRBY page:popularity 5 502
+ZINCRBY page:popularity 2 503
+
+ZRANGE page:popularity 0 -1 WITHSCORES
+ZREVRANGE page:popularity 0 2 WITHSCORES
+
+----------------------------------------------------
+
+// TASK 7
+// store recent user actions
+// write redis commands to:
+// log user 101 actions (login, view, like)
+// retrieve the last 5 actions
+
+LPUSH user:101:actions "like"
+LPUSH user:101:actions "like"
+LPUSH user:101:actions "comment"
+LPUSH user:101:actions "follow"
+LPUSH user:101:actions "unfollow"
+LPUSH user:101:actions "turned on notifications"
+LRANGE user:101:actions 0 4
+
+----------------------------------------------------
+
+// TASK 8
+// a like action should:
+// record the like
+// update popularity
+// log activity
+// write a redis command using transactions to:
+// add like
+// increment popularity score
+// log activity
+// execute atomically 
+
+MULTI
+SADD page:501:likes 101
+ZINCRBY page:popularity 1 501
+LPUSH user:101:actions "liked page 501"
+EXEC
+
+----------------------------------------------------
+
+// TASK 9
+// notify when a page is liked
+// write redis commands to:
+// subscribe to page events
+// publish an event when page 501 is liked
+
+SUBSCRIBE page_events
+PUBLISH page_events "page 501 received a like"
+
+----------------------------------------------------
+
+// TASK 10
+// how would you find all pages liked by a user?
+- use SMEMBERS user:101:page_likes. since we are storing all liks of a certain page in sets surely we can find all likes from that user from a set as well. 
+
+// how would you find users who viewed but have not liked the page?
+- this is also a job for sets. we can just do SDIFF page:501:likes page:502:viewers
+
+// which redis structures make these queries efficient?
+- sets make this efficient. 
