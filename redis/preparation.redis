@@ -1,0 +1,75 @@
+// TASK 1
+// a) read the current value of total_students
+// b) a new students registers - increase the counter by one
+// c) a student withdraws - decrease the counter by one 
+
+GET total_students
+INCR total_students
+DECR total_students
+
+---------------------------------------------------------------------
+
+// TASK 2 
+// a) retrieve the complete record of student 1003
+// b) retrieve only the gpa field of student 1003
+// c) student 1003 has graduated - change their status field to graduated
+
+HGETALL student:1003
+HGET student:1003 gpa
+HSET student:1003 status "graduated"
+
+---------------------------------------------------------------------
+
+// TASK 3 
+// a) show the entire activity log of student 1001 in cronological order
+// b) student 1001 just logged out - append logged out at the newest entry (oldest entries go first)
+// c) show only the first 2 (oldest) entries of the log
+
+LRANGE student:1001:activity 0 -1
+RPUSH student:1001:activity "Logged out"
+LRANGE student:1001:activity 0 1
+
+---------------------------------------------------------------------
+
+// TASK 4
+// a) list all students enrolled in course CS101
+// b) list all courses student 1003 is enrolled in
+// c) check whether student 1004 is enrolled in CS101 (single command, yes no answer)
+// d) enroll student 1002 into CS103. Remember enrollment is stored in both direction - update student course set and the courses student set
+
+SMEMBERS course:CS101:students 
+SMEMBERS student:1003:courses
+SISMEMBER student:1004:courses CS101
+SADD student:1002:courses CS103
+SADD course:CS103:students 1002
+
+---------------------------------------------------------------------
+
+// TASK 5
+// a) list all CS101 grades from lowest to highest with scores
+// b) list all CS101 grades from highest to lowest with scores
+// c) list only the CS101 students who got 90 or above with scores
+// d) record a grade of 79 for students 1004 in CS101, then show the full raning highest to lowest again
+
+ZRANGE course:CS101:grades 0 -1 WITHSCORES
+ZREVRANGE course:CS101:grades 0 -1 WITHSCORES
+ZRANGE course:CS101:grades 90 +inf BYSCORE WITHSCORES
+// or
+ZRANGEBYSCORE course:CS101:grades 90 +inf WITHSCORES
+ZADD course:CS101:grades 79 1004
+ZREVRANGE course:CS101:grades 0 -1 WITHSCORES
+
+---------------------------------------------------------------------
+
+// TASK 6
+// a) check how many seconds remain on session:1001
+// b) confirm that key session:1001 still exists, and report the data type of course:CS101:grades
+// c) enroll student 1005 into CS102 as a single atomic transaction that updates both the student's course set and the course's student set together
+
+TTL session:1001
+EXISTS session:1001
+TYPE course:CS101:grades
+MULTI
+SADD student:1005:courses CS102
+SADD course:CS102:students 1005
+EXEC
