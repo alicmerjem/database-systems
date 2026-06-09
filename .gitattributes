@@ -1,0 +1,5 @@
+*.redis linguist-language=Shell
+*.redis linguist-detectable=true
+
+*.mongodb.js linguist-language=JavaScript
+*.mongodb.js linguist-detectable=true

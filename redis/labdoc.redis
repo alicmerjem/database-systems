@@ -1,0 +1,83 @@
+// STRINGS AND BASIC COUNTERS 
+// simple key value pairs
+// can hold text, binary data or integers
+
+SET total_students 0
+INCR total_students
+INCRBY total_students 5
+GET total_students
+
+----------------------------------------------------
+
+// HASHES (OBJECTS)
+// hmset is legacy, hset is better
+// like a json object or a single data row
+// for stuff like courses, students, professors etc.
+
+HSET student:1001 name "Alice" \
+    year 2 \
+    gpa 3.6 \
+    status "active"
+HGET student:1001 gpa 
+HGETALL student:1001
+
+----------------------------------------------------
+
+// LISTS (ORDERED SEQUENCES)
+// remain in the exact order they were inserted
+// allow duplicates
+// you can  push and pop, like linked lists 
+ 
+RPUSH activity_log "active"    // adds to tail
+LPUSH activity_log "CRITICAL"  // adds to head
+LRANGE activity_log 0 -1
+LPOP activity_log             // gets the very first item
+
+----------------------------------------------------
+
+// SETS (UNIQUE, UNORDERED)
+// no duplicate values
+// perfect for many to many relationships
+// unions / intersections
+
+SADD course:CS101:students 1001 1002 1003
+SADD course:CS102:students 1002 1004
+
+// exam trick - find students enrolled in both courses 
+SINTER course:CS101:students course:CS102:students
+
+----------------------------------------------------
+
+// SORTED SETS (RANKED UNIQUE ITEMS)
+// everything is unique and mapped to a floating point number called a score
+
+ZADD exam:grades 85 1001
+ZADD exam:grades 95 1001
+ZADD exam:grades 85 1001
+
+ZRANGE exam:grades 0 -1 WITHSCORES 
+
+ZREVRANGE exam:grades 0 -1 WITHSCORES
+
+----------------------------------------------------
+
+// TIME TO LIVE (TTL, CACHING)
+SET session:1001 "active" EX 1800
+TTL session:1001
+
+----------------------------------------------------
+
+// TRANSACTION (ALL OR NOTHING EXECUTION)
+MULTI
+SADD student:1002:courses CS102
+SADD course:CS102:students 1002
+EXEC
+
+----------------------------------------------------
+
+// PUBLISH / SUBSCRIBE (EVENT MESSAGING)
+
+SUBSCRIBE university_alerts
+PUBLISH university_alerts "exam dates announced"
+
+----------------------------------------------------
