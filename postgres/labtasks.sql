@@ -121,10 +121,26 @@ INSERT INTO sales (month, product_type, region, revenue) VALUES
 # d) replace null values in results with meaningful labels
 # e) identify which month had the highest total sales across all regions
 
-SELECT month, product_type, region, SUM(revenue) AS total_revenue
+SELECT 
+    COALESCE(month, 'All Months') AS month,
+    COALESCE(product_type, 'All Product Types') AS product_type,
+    COALESCE(region, 'All Regions') AS region,
+    SUM(revenue) AS total_revenue
 FROM sales
-GROUP BY ROLLUP(month, product_type, region)
+GROUP BY ROLLUP (month, product_type, region)
+ORDER BY month, product_type, region;
 
-SELECT month, product_type, region, SUM(revenue) AS total_revenue
+SELECT 
+    COALESCE(month, 'All Months') AS month,
+    COALESCE(product_type, 'All Product Types') AS product_type,
+    COALESCE(region, 'All Regions') AS region,
+    SUM(revenue) AS total_revenue
 FROM sales
-GROUP BY CUBE (month, product_type, region);
+GROUP BY CUBE (month, product_type, region)
+ORDER BY month, product_type, region;
+
+SELECT month, SUM(revenue) AS total_revenue
+FROM sales
+GROUP BY month
+ORDER BY total_revenue DESC
+LIMIT 1;
